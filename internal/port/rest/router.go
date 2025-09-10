@@ -7,7 +7,8 @@ import (
 )
 
 type Handlers struct {
-	AccountHandler *handler.AccountHandler
+	AccountHandler     *handler.AccountHandler
+	TransactionHandler *handler.TransactionHandler
 }
 
 func NewRouter(handlers *Handlers) http.Handler {
@@ -15,6 +16,9 @@ func NewRouter(handlers *Handlers) http.Handler {
 
 	if handlers.AccountHandler != nil {
 		handler.RegisterAccountRouter(mux, handlers.AccountHandler)
+	}
+	if handlers.TransactionHandler != nil {
+		handler.RegisterTransactionRouter(mux, handlers.TransactionHandler)
 	}
 
 	return mux

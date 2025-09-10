@@ -30,6 +30,16 @@ func NewTransactionHandler(baseHandler *BaseHandler, service TransactionUsecase,
 	}
 }
 
+// Deposit godoc
+// @Summary Пополнение счета
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param id path int true "ID аккаунта"
+// @Param request body dto.DepositRequest true "Сумма пополнения"
+// @Success 201 {object} entity.Transaction
+// @Failure 400 {object} ErrorResponse
+// @Router /accounts/{id}/deposit [post]
 func (h *TransactionHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -56,6 +66,15 @@ func (h *TransactionHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	h.RespondWithJSON(w, http.StatusCreated, tx)
 }
 
+// Withdraw godoc
+// @Summary Снятие со счета
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param id path int true "ID аккаунта"
+// @Param request body dto.WithdrawRequest true "Сумма снятия"
+// @Success 201 {object} entity.Transaction
+// @Router /accounts/{id}/withdraw [post]
 func (h *TransactionHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -81,6 +100,15 @@ func (h *TransactionHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	h.RespondWithJSON(w, http.StatusCreated, tx)
 }
 
+// Transfer godoc
+// @Summary Перевод средств
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param id path int true "ID аккаунта-отправителя"
+// @Param request body dto.TransferRequest true "Перевод"
+// @Success 201 {object} entity.Transaction
+// @Router /accounts/{id}/transfer [post]
 func (h *TransactionHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -108,6 +136,13 @@ func (h *TransactionHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 	h.RespondWithJSON(w, http.StatusCreated, tx)
 }
 
+// ListTransactions godoc
+// @Summary История транзакций
+// @Tags transactions
+// @Produce json
+// @Param id path int true "ID аккаунта"
+// @Success 200 {array} entity.Transaction
+// @Router /accounts/{id}/transactions [get]
 func (h *TransactionHandler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")

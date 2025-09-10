@@ -32,7 +32,17 @@ func NewAccountHandler(baseHandler *BaseHandler, service AccountUsecase, logger 
 	}
 }
 
-// Create handles account creation
+// Create godoc
+// @Summary Создать новый счет
+// @Description Создает новый аккаунт с балансом и валютой
+// @Tags accounts
+// @Accept json
+// @Produce json
+// @Param account body entity.Account true "Данные аккаунта"
+// @Success 201 {object} entity.Account
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /accounts [post]
 func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -58,7 +68,14 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetByID handles retrieving an account by ID
+// GetByID godoc
+// @Summary Получить счет по ID
+// @Tags accounts
+// @Produce json
+// @Param id path int true "ID аккаунта"
+// @Success 200 {object} entity.Account
+// @Failure 404 {object} ErrorResponse
+// @Router /accounts/{id} [get]
 func (h *AccountHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -82,7 +99,13 @@ func (h *AccountHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Delete handles account deletion
+// Delete godoc
+// @Summary Удалить счет
+// @Tags accounts
+// @Param id path int true "ID аккаунта"
+// @Success 204
+// @Failure 404 {object} ErrorResponse
+// @Router /accounts/{id} [delete]
 func (h *AccountHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -107,6 +130,14 @@ func (h *AccountHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	h.RespondWithJSON(w, http.StatusNoContent, nil)
 }
 
+// List godoc
+// @Summary Список счетов
+// @Tags accounts
+// @Produce json
+// @Param page query int false "Номер страницы"
+// @Param limit query int false "Количество элементов"
+// @Success 200 {object} map[string]interface{}
+// @Router /accounts [get]
 func (h *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")

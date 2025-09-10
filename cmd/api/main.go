@@ -10,6 +10,7 @@ import (
 
 	"github.com/serikdev/CashFlow/internal/adapter/repository"
 	"github.com/serikdev/CashFlow/internal/config"
+	"github.com/serikdev/CashFlow/internal/kafka"
 	"github.com/serikdev/CashFlow/internal/port/rest"
 	"github.com/serikdev/CashFlow/internal/port/rest/handler"
 	"github.com/serikdev/CashFlow/internal/usecase"
@@ -17,40 +18,43 @@ import (
 	"github.com/serikdev/CashFlow/pkg/logger"
 )
 
+// @title CashFlow API
+// @version 1.0
+// @description API для управления счетами и транзакциями (Clean Architecture + Kafka).
+// @host localhost:8080
+// @BasePath /api
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	config := config.LoadConfig()
-	logger := logger.NewLogger()
+	cfg := config.LoadConfig()
+	log := logger.NewLogger()
 
-	// Adding the log at startup
-	logger.WithFields(map[string]interface{}{
-		"db_host":   config.DBConfig.Host,
-		"db_port":   config.DBConfig.Port,
-		"db_name":   config.DBConfig.Name,
-		"log_level": config.LoggerConfig.LogLevel,
-	}).Info("Starting server with safe config")
+	log.WithFields(map[string]interface{}{
+		"db_host":   cfg.DBConfig.Host,
+		"db_port":   cfg.DBConfig.Port,
+		"db_name":   cfg.DBConfig.Name,
+		"log_level": cfg.LoggerConfig.LogLevel,
+	}).Info("Starting server with config")
 
-	db, err := database.NewPool(ctx, config.DBConfig, *logger)
+	db, err := database.NewPool(ctx, cfg.DBConfig, *log)
 	if err != nil {
-		logger.WithError(err).Fatal("Failed to connect database")
+		log.WithError(err).Fatal("Failed to connect database")
 	}
 	defer db.Close()
 
-	// Initializing layers
-	accountRepo := repository.NewAccountRepository(db, logger)
-	transactionRepo := repository.NewTransactionRepository(db, logger)
+	producer := kafka.NewProducer(cfg.KafkaConfig.Brokers, log)
+	defer producer.Close()
 
-	// ==== Usecases ====
-	accountService := usecase.NewAccountService(accountRepo, logger)
-	transactionService := usecase.NewTransactionService(transactionRepo, accountRepo, logger)
+	accountRepo := repository.NewAccountRepository(db, log)
+	transactionRepo := repository.NewTransactionRepository(db, log)
 
-	// ==== Handlers ====
-	baseHandler := handler.NewBaseHandler(logger)
+	accountService := usecase.NewAccountService(accountRepo, log)
+	transactionService := usecase.NewTransactionService(producer, log)
 
-	accountHandler := handler.NewAccountHandler(&baseHandler, accountService, logger)
-	transactionHandler := handler.NewTransactionHandler(&baseHandler, transactionService, logger)
+	baseHandler := handler.NewBaseHandler(log)
+	accountHandler := handler.NewAccountHandler(&baseHandler, accountService, log)
+	transactionHandler := handler.NewTransactionHandler(&baseHandler, transactionService, log)
 
 	handlers := rest.Handlers{
 		AccountHandler:     accountHandler,
@@ -58,7 +62,28 @@ func main() {
 	}
 
 	router := rest.NewRouter(&handlers)
-	// HTTP server with timeouts
+
+	// Start Kafka Consumers
+	go func() {
+		depositConsumer := kafka.NewConsumer(cfg.KafkaConfig.Brokers, "account-deposit", "cashflow-group", transactionRepo, log)
+		if err := depositConsumer.Run(ctx); err != nil {
+			log.WithError(err).Fatal("Deposit consumer failed")
+		}
+	}()
+	go func() {
+		withdrawConsumer := kafka.NewConsumer(cfg.KafkaConfig.Brokers, "account-withdraw", "cashflow-group", transactionRepo, log)
+		if err := withdrawConsumer.Run(ctx); err != nil {
+			log.WithError(err).Fatal("Withdraw consumer failed")
+		}
+	}()
+	go func() {
+		transferConsumer := kafka.NewConsumer(cfg.KafkaConfig.Brokers, "account-transfer", "cashflow-group", transactionRepo, log)
+		if err := transferConsumer.Run(ctx); err != nil {
+			log.WithError(err).Fatal("Transfer consumer failed")
+		}
+	}()
+
+	// HTTP Server
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      router,
@@ -67,27 +92,27 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Gracefull shutdowns
+	// Graceful Shutdown
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		logger.Info("Server starting on :8080")
+		log.Info("Server starting on :8080")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.WithError(err).Fatal("Server failed to start")
+			log.WithError(err).Fatal("Server failed to start")
 		}
 	}()
 
 	<-stop
-	logger.Info("SHutting down server.....")
+	log.Info("Shutting down server...")
 
 	ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelShutdown()
 	if err := server.Shutdown(ctxShutdown); err != nil {
-		logger.WithError(err).Error("Server forced to shutdown")
+		log.WithError(err).Error("Server forced to shutdown")
 	} else {
-		logger.Info("Server exited gracefully")
+		log.Info("Server exited gracefully")
 	}
 
-	logger.Info("Server stopped")
+	log.Info("Server stopped")
 }

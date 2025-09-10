@@ -1,12 +1,21 @@
-FROM golang:1.22-alpine AS builder
+
+FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY . .
-RUN go mod tidy && go build -o cashflow ./cmd/api
 
-FROM alpine:3.18
-WORKDIR /app
+RUN go build -o cashflow ./cmd/app
+
+FROM alpine:latest
+
+WORKDIR /root/
+
 COPY --from=builder /app/cashflow .
-COPY .env .
+
 EXPOSE 8080
+
 CMD ["./cashflow"]

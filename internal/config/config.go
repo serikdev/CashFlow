@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -10,6 +11,7 @@ import (
 type Config struct {
 	DBConfig     DBConfig
 	LoggerConfig LoggerConfig
+	KafkaConfig  KafkaConfig
 }
 
 type DBConfig struct {
@@ -23,6 +25,9 @@ type DBConfig struct {
 
 type LoggerConfig struct {
 	LogLevel string
+}
+type KafkaConfig struct {
+	Brokers []string
 }
 
 func LoadConfig() *Config {
@@ -41,6 +46,9 @@ func LoadConfig() *Config {
 		},
 		LoggerConfig: LoggerConfig{
 			LogLevel: getEnv("LOG_LEVEL", "debug"),
+		},
+		KafkaConfig: KafkaConfig{
+			Brokers: strings.Split(getEnv("KAFKA_BROKERS", "9092"), ","),
 		},
 	}
 }

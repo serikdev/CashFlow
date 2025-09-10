@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/serikdev/CashFlow/internal/entity"
 	"github.com/sirupsen/logrus"
 )
 
+// AccountUsecase defines the account service interface
 type AccountUsecase interface {
 	Create(ctx context.Context, account *entity.Account) (*entity.Account, error)
 	GetByID(ctx context.Context, id int64) (*entity.Account, error)
@@ -17,12 +19,12 @@ type AccountUsecase interface {
 	List(ctx context.Context, page, limit int) ([]entity.Account, int, error)
 }
 type AccountHandler struct {
-	BaseHandler
+	*BaseHandler
 	service AccountUsecase
 	logger  *logrus.Entry
 }
 
-func NewAccountHandler(baseHandler BaseHandler, service AccountUsecase, logger *logrus.Entry) *AccountHandler {
+func NewAccountHandler(baseHandler *BaseHandler, service AccountUsecase, logger *logrus.Entry) *AccountHandler {
 	return &AccountHandler{
 		BaseHandler: baseHandler,
 		service:     service,
@@ -30,9 +32,10 @@ func NewAccountHandler(baseHandler BaseHandler, service AccountUsecase, logger *
 	}
 }
 
+// Create handles account creation
 func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not alowed")
+		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
 		return
 	}
 
@@ -44,7 +47,7 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
-	account, err := h.usecase.Create(ctx, input)
+	account, err := h.service.Create(ctx, &input)
 	if err != nil {
 		h.logger.WithError(err).Error("Failed to create account")
 		h.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -55,6 +58,7 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetByID handles retrieving an account by ID
 func (h *AccountHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -66,7 +70,9 @@ func (h *AccountHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := h.usecase.GetAccount(id)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+	account, err := h.service.GetByID(ctx, id)
 	if err != nil {
 		h.RespondWithError(w, http.StatusNotFound, err.Error())
 		return
@@ -74,4 +80,68 @@ func (h *AccountHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	h.RespondWithJSON(w, http.StatusOK, account)
 
+}
+
+// Delete handles account deletion
+func (h *AccountHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	id, err := h.GetIDFromPath(r)
+	if err != nil {
+		h.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	if err := h.service.Delete(ctx, id); err != nil {
+		h.logger.WithError(err).WithField("account_id", id).Error("Failed to delete account")
+		h.RespondWithError(w, http.StatusInternalServerError, "Failed to delete account")
+		return
+	}
+
+	h.RespondWithJSON(w, http.StatusNoContent, nil)
+}
+
+func (h *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page <= 0 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	account, total, err := h.service.List(ctx, page, limit)
+	if err != nil {
+		h.logger.WithError(err).Error("Failed to fetch account")
+		h.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	h.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"data": account,
+		"meta": map[string]interface{}{
+			"total":        total,
+			"current_page": page,
+			"last_page":    (total + limit - 1) / limit,
+		},
+	})
 }

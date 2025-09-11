@@ -45,6 +45,12 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
                     }
                 }
             },
@@ -118,6 +124,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/entity.Account"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -144,54 +156,14 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content"
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/handler.ErrorResponse"
                         }
-                    }
-                }
-            }
-        },
-        "/accounts/{id}/deposit": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "transactions"
-                ],
-                "summary": "Пополнение счета",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID аккаунта",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
                     },
-                    {
-                        "description": "Сумма пополнения",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.DepositRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/entity.Transaction"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handler.ErrorResponse"
                         }
@@ -225,6 +197,18 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/entity.Transaction"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
                         }
                     }
                 }
@@ -266,6 +250,18 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/entity.Transaction"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -306,20 +302,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/entity.Transaction"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
                     }
                 }
             }
         }
     },
     "definitions": {
-        "dto.DepositRequest": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                }
-            }
-        },
         "dto.TransferRequest": {
             "type": "object",
             "properties": {
@@ -340,29 +340,39 @@ const docTemplate = `{
             }
         },
         "entity.Account": {
+            "description": "Банковский счет пользователя",
             "type": "object",
             "properties": {
                 "balance": {
-                    "type": "number"
+                    "type": "number",
+                    "format": "double",
+                    "example": 1000.5
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-09-09T12:00:00Z"
                 },
                 "currency": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "TMT"
                 },
                 "deleted_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "null"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64",
+                    "example": 1
                 },
                 "is_locked": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "example": false
                 }
             }
         },
         "entity.Transaction": {
+            "description": "Операция по счету",
             "type": "object",
             "properties": {
                 "account_id": {
@@ -412,8 +422,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для управления счетами и транзакциями (Clean Architecture + Kafka).",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	LeftDelim:        "{{",
-	RightDelim:       "}}",
+	// LeftDelim:        "{{",
+	// RightDelim:       "}}",
 }
 
 func init() {

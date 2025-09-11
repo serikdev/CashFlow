@@ -32,14 +32,17 @@ func NewTransactionHandler(baseHandler *BaseHandler, service TransactionUsecase,
 
 // Deposit godoc
 // @Summary Пополнение счета
+// @Description Пополняет баланс аккаунта
 // @Tags transactions
 // @Accept json
 // @Produce json
 // @Param id path int true "ID аккаунта"
 // @Param request body dto.DepositRequest true "Сумма пополнения"
 // @Success 201 {object} entity.Transaction
-// @Failure 400 {object} ErrorResponse
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
 // @Router /accounts/{id}/deposit [post]
+
 func (h *TransactionHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -74,6 +77,8 @@ func (h *TransactionHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 // @Param id path int true "ID аккаунта"
 // @Param request body dto.WithdrawRequest true "Сумма снятия"
 // @Success 201 {object} entity.Transaction
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
 // @Router /accounts/{id}/withdraw [post]
 func (h *TransactionHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -108,6 +113,8 @@ func (h *TransactionHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 // @Param id path int true "ID аккаунта-отправителя"
 // @Param request body dto.TransferRequest true "Перевод"
 // @Success 201 {object} entity.Transaction
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
 // @Router /accounts/{id}/transfer [post]
 func (h *TransactionHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -142,6 +149,8 @@ func (h *TransactionHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path int true "ID аккаунта"
 // @Success 200 {array} entity.Transaction
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
 // @Router /accounts/{id}/transactions [get]
 func (h *TransactionHandler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

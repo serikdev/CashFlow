@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/serikdev/CashFlow/docs"
 	"github.com/serikdev/CashFlow/internal/adapter/repository"
 	"github.com/serikdev/CashFlow/internal/config"
 	"github.com/serikdev/CashFlow/internal/kafka"

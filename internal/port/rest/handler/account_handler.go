@@ -40,8 +40,8 @@ func NewAccountHandler(baseHandler *BaseHandler, service AccountUsecase, logger 
 // @Produce json
 // @Param account body entity.Account true "Данные аккаунта"
 // @Success 201 {object} entity.Account
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 500 {object} handler.ErrorResponse
 // @Router /accounts [post]
 func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -74,7 +74,8 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param id path int true "ID аккаунта"
 // @Success 200 {object} entity.Account
-// @Failure 404 {object} ErrorResponse
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 404 {object} handler.ErrorResponse
 // @Router /accounts/{id} [get]
 func (h *AccountHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -103,8 +104,9 @@ func (h *AccountHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 // @Summary Удалить счет
 // @Tags accounts
 // @Param id path int true "ID аккаунта"
-// @Success 204
-// @Failure 404 {object} ErrorResponse
+// @Success 204 "No Content"
+// @Failure 400 {object} handler.ErrorResponse
+// @Failure 404 {object} handler.ErrorResponse
 // @Router /accounts/{id} [delete]
 func (h *AccountHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
@@ -137,6 +139,7 @@ func (h *AccountHandler) Delete(w http.ResponseWriter, r *http.Request) {
 // @Param page query int false "Номер страницы"
 // @Param limit query int false "Количество элементов"
 // @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} handler.ErrorResponse
 // @Router /accounts [get]
 func (h *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

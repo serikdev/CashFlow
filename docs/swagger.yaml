@@ -1,10 +1,5 @@
 basePath: /api
 definitions:
-  dto.DepositRequest:
-    properties:
-      amount:
-        type: number
-    type: object
   dto.TransferRequest:
     properties:
       amount:
@@ -18,21 +13,31 @@ definitions:
         type: number
     type: object
   entity.Account:
+    description: Банковский счет пользователя
     properties:
       balance:
+        example: 1000.5
+        format: double
         type: number
       created_at:
+        example: "2025-09-09T12:00:00Z"
         type: string
       currency:
+        example: TMT
         type: string
       deleted_at:
+        example: "null"
         type: string
       id:
+        example: 1
+        format: int64
         type: integer
       is_locked:
+        example: false
         type: boolean
     type: object
   entity.Transaction:
+    description: Операция по счету
     properties:
       account_id:
         type: integer
@@ -82,6 +87,10 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Список счетов
       tags:
       - accounts
@@ -125,6 +134,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -146,6 +159,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/entity.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
         "404":
           description: Not Found
           schema:
@@ -153,36 +170,6 @@ paths:
       summary: Получить счет по ID
       tags:
       - accounts
-  /accounts/{id}/deposit:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: ID аккаунта
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Сумма пополнения
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.DepositRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/entity.Transaction'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handler.ErrorResponse'
-      summary: Пополнение счета
-      tags:
-      - transactions
   /accounts/{id}/transactions:
     get:
       parameters:
@@ -200,6 +187,14 @@ paths:
             items:
               $ref: '#/definitions/entity.Transaction'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: История транзакций
       tags:
       - transactions
@@ -226,6 +221,14 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/entity.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Перевод средств
       tags:
       - transactions
@@ -252,6 +255,14 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/entity.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
       summary: Снятие со счета
       tags:
       - transactions

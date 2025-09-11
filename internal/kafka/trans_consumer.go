@@ -33,7 +33,7 @@ type ConsumerImpl struct {
 	repository TransactionRepository
 }
 
-func NewConsumer(brokers []string, topic, groupID string, repo TransactionRepository, logger *logrus.Entry) *ConsumerImpl {
+func NewConsumerImpl(brokers []string, topic, groupID string, repo TransactionRepository, logger *logrus.Entry) *ConsumerImpl {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  brokers,
 		GroupID:  groupID,

@@ -43,7 +43,7 @@ func main() {
 	}
 	defer db.Close()
 
-	producer := kafka.NewProducer(cfg.KafkaConfig.Brokers, log)
+	producer := kafka.NewProducerImpl(cfg.KafkaConfig.Brokers, log)
 	defer producer.Close()
 
 	accountRepo := repository.NewAccountRepository(db, log)
@@ -65,19 +65,19 @@ func main() {
 
 	// Start Kafka Consumers
 	go func() {
-		depositConsumer := kafka.NewConsumer(cfg.KafkaConfig.Brokers, "account-deposit", "cashflow-group", transactionRepo, log)
+		depositConsumer := kafka.NewConsumerImpl(cfg.KafkaConfig.Brokers, "account-deposit", "cashflow-group", transactionRepo, log)
 		if err := depositConsumer.Run(ctx); err != nil {
 			log.WithError(err).Fatal("Deposit consumer failed")
 		}
 	}()
 	go func() {
-		withdrawConsumer := kafka.NewConsumer(cfg.KafkaConfig.Brokers, "account-withdraw", "cashflow-group", transactionRepo, log)
+		withdrawConsumer := kafka.NewConsumerImpl(cfg.KafkaConfig.Brokers, "account-withdraw", "cashflow-group", transactionRepo, log)
 		if err := withdrawConsumer.Run(ctx); err != nil {
 			log.WithError(err).Fatal("Withdraw consumer failed")
 		}
 	}()
 	go func() {
-		transferConsumer := kafka.NewConsumer(cfg.KafkaConfig.Brokers, "account-transfer", "cashflow-group", transactionRepo, log)
+		transferConsumer := kafka.NewConsumerImpl(cfg.KafkaConfig.Brokers, "account-transfer", "cashflow-group", transactionRepo, log)
 		if err := transferConsumer.Run(ctx); err != nil {
 			log.WithError(err).Fatal("Transfer consumer failed")
 		}

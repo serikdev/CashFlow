@@ -13,7 +13,7 @@ type ProducerImpl struct {
 	logger *logrus.Entry
 }
 
-func NewProducer(brokers []string, logger *logrus.Entry) *ProducerImpl {
+func NewProducerImpl(brokers []string, logger *logrus.Entry) *ProducerImpl {
 	return &ProducerImpl{
 		writer: &kafka.Writer{
 			Addr:         kafka.TCP(brokers...),

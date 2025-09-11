@@ -24,7 +24,7 @@ import (
 // @host localhost:8080
 // @BasePath /api
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	cfg := config.LoadConfig()
@@ -50,7 +50,8 @@ func main() {
 	transactionRepo := repository.NewTransactionRepository(db, log)
 
 	accountService := usecase.NewAccountService(accountRepo, log)
-	transactionService := usecase.NewTransactionService(producer, log)
+	transactionService := usecase.NewTransactionService(transactionRepo, producer, log)
+	transactionService.SetRepo(transactionRepo)
 
 	baseHandler := handler.NewBaseHandler(log)
 	accountHandler := handler.NewAccountHandler(&baseHandler, accountService, log)

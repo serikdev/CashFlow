@@ -1,0 +1,258 @@
+basePath: /api
+definitions:
+  dto.DepositRequest:
+    properties:
+      amount:
+        type: number
+    type: object
+  dto.TransferRequest:
+    properties:
+      amount:
+        type: number
+      to_account_id:
+        type: integer
+    type: object
+  dto.WithdrawRequest:
+    properties:
+      amount:
+        type: number
+    type: object
+  entity.Account:
+    properties:
+      balance:
+        type: number
+      created_at:
+        type: string
+      currency:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      is_locked:
+        type: boolean
+    type: object
+  entity.Transaction:
+    properties:
+      account_id:
+        type: integer
+      amount:
+        type: number
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      transaction_type:
+        type: string
+    type: object
+  handler.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      error:
+        type: string
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления счетами и транзакциями (Clean Architecture + Kafka).
+  title: CashFlow API
+  version: "1.0"
+paths:
+  /accounts:
+    get:
+      parameters:
+      - description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - description: Количество элементов
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Список счетов
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: Создает новый аккаунт с балансом и валютой
+      parameters:
+      - description: Данные аккаунта
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/entity.Account'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Создать новый счет
+      tags:
+      - accounts
+  /accounts/{id}:
+    delete:
+      parameters:
+      - description: ID аккаунта
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Удалить счет
+      tags:
+      - accounts
+    get:
+      parameters:
+      - description: ID аккаунта
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Account'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Получить счет по ID
+      tags:
+      - accounts
+  /accounts/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID аккаунта
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Сумма пополнения
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DepositRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Пополнение счета
+      tags:
+      - transactions
+  /accounts/{id}/transactions:
+    get:
+      parameters:
+      - description: ID аккаунта
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Transaction'
+            type: array
+      summary: История транзакций
+      tags:
+      - transactions
+  /accounts/{id}/transfer:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID аккаунта-отправителя
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Перевод
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Transaction'
+      summary: Перевод средств
+      tags:
+      - transactions
+  /accounts/{id}/withdraw:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID аккаунта
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Сумма снятия
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.WithdrawRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Transaction'
+      summary: Снятие со счета
+      tags:
+      - transactions
+swagger: "2.0"

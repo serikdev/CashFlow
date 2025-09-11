@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -35,11 +36,12 @@ type ConsumerImpl struct {
 
 func NewConsumerImpl(brokers []string, topic, groupID string, repo TransactionRepository, logger *logrus.Entry) *ConsumerImpl {
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  brokers,
-		GroupID:  groupID,
-		Topic:    topic,
-		MinBytes: 10e3,
-		MaxBytes: 10e6,
+		Brokers:     brokers,
+		GroupID:     groupID,
+		GroupTopics: []string{"account-deposit", "account-withdraw", "account-transfer"},
+		Topic:       topic,
+		MinBytes:    10e3,
+		MaxBytes:    10e6,
 	})
 
 	return &ConsumerImpl{
@@ -55,7 +57,15 @@ func (c *ConsumerImpl) Run(ctx context.Context) error {
 	for {
 		m, err := c.reader.ReadMessage(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to read message: %w", err)
+			// Если контекст закрыт → выходим
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				c.logger.Info("Consumer context cancelled, shutting down gracefully")
+				return nil
+			}
+
+			// Любая другая ошибка — логируем и продолжаем ждать
+			c.logger.WithError(err).Error("Failed to read message, will retry...")
+			continue
 		}
 
 		var event TransactionEvent

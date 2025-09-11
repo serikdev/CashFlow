@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path"
 	"strconv"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -52,11 +52,12 @@ func (b *BaseHandler) RespondWithJSON(w http.ResponseWriter, code int, payload i
 }
 
 func (b *BaseHandler) GetIDFromPath(r *http.Request) (int64, error) {
-	idStr := path.Base(r.URL.Path)
-	if idStr == "/" || idStr == "." || idStr == "" {
-		return 0, fmt.Errorf("no ID found path")
+	segments := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	if len(segments) < 3 {
+		return 0, fmt.Errorf("invalid path, expected /accounts/{id}/action")
 	}
 
+	idStr := segments[2] // /api/accounts/{id}/withdraw → segments[0]=api, [1]=accounts, [2]=id
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("invalid ID format: %w", err)

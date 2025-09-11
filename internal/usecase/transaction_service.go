@@ -24,7 +24,7 @@ type TransactionService struct {
 	logger   *logrus.Entry
 }
 
-func NewTransactionService(producer Producer, logger *logrus.Entry) *TransactionService {
+func NewTransactionService(repo TransactionRepo, producer Producer, logger *logrus.Entry) *TransactionService {
 	return &TransactionService{
 		producer: producer,
 		logger:   logger,
@@ -48,7 +48,7 @@ func (s *TransactionService) Deposit(accountID int64, amount float64) (*entity.T
 		return nil, fmt.Errorf("error to marshal deposit event: %w", err)
 	}
 
-	if err := s.producer.Publish("account_deposit", fmt.Sprintf("%d", accountID), data); err != nil {
+	if err := s.producer.Publish("account-deposit", fmt.Sprintf("%d", accountID), data); err != nil {
 		return nil, fmt.Errorf("error to publish deposit event: %w", err)
 	}
 	return &entity.Transaction{
@@ -123,4 +123,8 @@ func (s *TransactionService) Transfer(fromAccountID, toAccountID int64, amount f
 
 func (s *TransactionService) ListTransactions(accountID int64) ([]entity.Transaction, error) {
 	return s.repo.ListTransactions(accountID)
+}
+
+func (s *TransactionService) SetRepo(repo TransactionRepo) {
+	s.repo = repo
 }

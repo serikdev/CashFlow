@@ -48,7 +48,7 @@ func LoadConfig() *Config {
 			LogLevel: getEnv("LOG_LEVEL", "debug"),
 		},
 		KafkaConfig: KafkaConfig{
-			Brokers: strings.Split(getEnv("KAFKA_BROKERS", "9092"), ","),
+			Brokers: strings.Split(getEnv("KAFKA_BROKER", "localhost:9092"), ","),
 		},
 	}
 }

@@ -38,7 +38,7 @@ func NewAccountHandler(baseHandler *BaseHandler, service AccountUsecase, logger 
 // @Tags accounts
 // @Accept json
 // @Produce json
-// @Param account body entity.Account true "Данные аккаунта"
+// @Param account body dto.CreateAccountRequest true "Данные аккаунта"
 // @Success 201 {object} entity.Account
 // @Failure 400 {object} handler.ErrorResponse
 // @Failure 500 {object} handler.ErrorResponse
@@ -129,6 +129,7 @@ func (h *AccountHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.logger.Info("Successfully deleted id: ", id)
 	h.RespondWithJSON(w, http.StatusNoContent, nil)
 }
 

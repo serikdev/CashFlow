@@ -1,5 +1,14 @@
 basePath: /api
 definitions:
+  dto.CreateAccountRequest:
+    properties:
+      balance:
+        example: 1000
+        type: number
+      currency:
+        example: TMT
+        type: string
+    type: object
   dto.TransferRequest:
     properties:
       amount:
@@ -13,31 +22,21 @@ definitions:
         type: number
     type: object
   entity.Account:
-    description: Банковский счет пользователя
     properties:
       balance:
-        example: 1000.5
-        format: double
         type: number
       created_at:
-        example: "2025-09-09T12:00:00Z"
         type: string
       currency:
-        example: TMT
         type: string
       deleted_at:
-        example: "null"
         type: string
       id:
-        example: 1
-        format: int64
         type: integer
       is_locked:
-        example: false
         type: boolean
     type: object
   entity.Transaction:
-    description: Операция по счету
     properties:
       account_id:
         type: integer
@@ -104,7 +103,7 @@ paths:
         name: account
         required: true
         schema:
-          $ref: '#/definitions/entity.Account'
+          $ref: '#/definitions/dto.CreateAccountRequest'
       produces:
       - application/json
       responses:

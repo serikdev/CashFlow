@@ -73,7 +73,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entity.Account"
+                            "$ref": "#/definitions/dto.CreateAccountRequest"
                         }
                     }
                 ],
@@ -320,6 +320,19 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateAccountRequest": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number",
+                    "example": 1000
+                },
+                "currency": {
+                    "type": "string",
+                    "example": "TMT"
+                }
+            }
+        },
         "dto.TransferRequest": {
             "type": "object",
             "properties": {
@@ -340,39 +353,29 @@ const docTemplate = `{
             }
         },
         "entity.Account": {
-            "description": "Банковский счет пользователя",
             "type": "object",
             "properties": {
                 "balance": {
-                    "type": "number",
-                    "format": "double",
-                    "example": 1000.5
+                    "type": "number"
                 },
                 "created_at": {
-                    "type": "string",
-                    "example": "2025-09-09T12:00:00Z"
+                    "type": "string"
                 },
                 "currency": {
-                    "type": "string",
-                    "example": "TMT"
+                    "type": "string"
                 },
                 "deleted_at": {
-                    "type": "string",
-                    "example": "null"
+                    "type": "string"
                 },
                 "id": {
-                    "type": "integer",
-                    "format": "int64",
-                    "example": 1
+                    "type": "integer"
                 },
                 "is_locked": {
-                    "type": "boolean",
-                    "example": false
+                    "type": "boolean"
                 }
             }
         },
         "entity.Transaction": {
-            "description": "Операция по счету",
             "type": "object",
             "properties": {
                 "account_id": {
@@ -422,8 +425,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для управления счетами и транзакциями (Clean Architecture + Kafka).",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	// LeftDelim:        "{{",
-	// RightDelim:       "}}",
 }
 
 func init() {

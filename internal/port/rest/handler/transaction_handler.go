@@ -42,7 +42,6 @@ func NewTransactionHandler(baseHandler *BaseHandler, service TransactionUsecase,
 // @Failure 400 {object} handler.ErrorResponse
 // @Failure 500 {object} handler.ErrorResponse
 // @Router /accounts/{id}/deposit [post]
-
 func (h *TransactionHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		h.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")

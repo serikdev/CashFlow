@@ -165,6 +165,59 @@
                 }
             }
         },
+        "/accounts/{id}/deposit": {
+            "post": {
+                "description": "Пополняет баланс аккаунта",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transactions"
+                ],
+                "summary": "Пополнение счета",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID аккаунта",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Сумма пополнения",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DepositRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Transaction"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handler.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/accounts/{id}/transactions": {
             "get": {
                 "produces": [
@@ -324,6 +377,14 @@
                 "currency": {
                     "type": "string",
                     "example": "TMT"
+                }
+            }
+        },
+        "dto.DepositRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
                 }
             }
         },

@@ -57,13 +57,12 @@ func (c *ConsumerImpl) Run(ctx context.Context) error {
 	for {
 		m, err := c.reader.ReadMessage(ctx)
 		if err != nil {
-			// Если контекст закрыт → выходим
+
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				c.logger.Info("Consumer context cancelled, shutting down gracefully")
 				return nil
 			}
 
-			// Любая другая ошибка — логируем и продолжаем ждать
 			c.logger.WithError(err).Error("Failed to read message, will retry...")
 			continue
 		}

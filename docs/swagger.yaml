@@ -9,6 +9,11 @@ definitions:
         example: TMT
         type: string
     type: object
+  dto.DepositRequest:
+    properties:
+      amount:
+        type: number
+    type: object
   dto.TransferRequest:
     properties:
       amount:
@@ -169,6 +174,41 @@ paths:
       summary: Получить счет по ID
       tags:
       - accounts
+  /accounts/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Пополняет баланс аккаунта
+      parameters:
+      - description: ID аккаунта
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Сумма пополнения
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DepositRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Пополнение счета
+      tags:
+      - transactions
   /accounts/{id}/transactions:
     get:
       parameters:

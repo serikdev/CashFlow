@@ -77,8 +77,8 @@ func (r *TransactionRepository) Withdraw(accountID int64, amount float64) error 
 		r.logger.WithError(err).Error("Failed withdraw: insufficient funds or account locked")
 		return fmt.Errorf("withdraw failed: insufficient funds or account locked")
 	}
-	r.logger.Info("Successfully withdraw")
 
+	r.logger.Info("Successfully withdraw")
 	return nil
 }
 
@@ -143,13 +143,13 @@ func (r *TransactionRepository) SaveTransaction(txn *entity.Transaction) error {
 }
 
 func (r *TransactionRepository) ListTransactions(accountID int64) ([]entity.Transaction, error) {
-	r.logger.WithField("Listing transaction...", accountID).Debug("Prossesing list transaction...")
+	r.logger.WithField("Listing transactions...", accountID).Debug("Prossesing list transactions...")
 
 	ctx := context.Background()
 
 	rows, err := r.db.Query(ctx, queryList, accountID)
 	if err != nil {
-		r.logger.WithError(err).Error("Failed list transaction")
+		r.logger.WithError(err).Error("Failed list transactions")
 		return nil, fmt.Errorf("list transactions failed: %w", err)
 	}
 	defer rows.Close()
@@ -170,6 +170,6 @@ func (r *TransactionRepository) ListTransactions(accountID int64) ([]entity.Tran
 		transactions = append(transactions, t)
 	}
 
-	r.logger.Info("Successfully fetched list transaction")
+	r.logger.Info("Successfully fetched list transactions")
 	return transactions, nil
 }

@@ -52,10 +52,18 @@ func main() {
 	transactionRepo := repository.NewTransactionRepository(db, log)
 
 	accountService := usecase.NewAccountService(accountRepo, log)
-	transactionService := usecase.NewTransactionService(transactionRepo, producer, log)
+
+	transactionService := usecase.NewTransactionService(usecase.TransactionServiceDeps{
+		TransactionRepo: transactionRepo,
+		AccountRepo:     accountRepo,
+		Producer:        producer,
+		Logger:          log,
+	})
+
 	transactionService.SetRepo(transactionRepo)
 
 	baseHandler := handler.NewBaseHandler(log)
+
 	accountHandler := handler.NewAccountHandler(&baseHandler, accountService, log)
 	transactionHandler := handler.NewTransactionHandler(&baseHandler, transactionService, log)
 

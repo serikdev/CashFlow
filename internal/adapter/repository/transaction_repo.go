@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/serikdev/CashFlow/internal/entity"
@@ -48,7 +49,9 @@ const (
 
 func (r *TransactionRepository) Deposit(accountID int64, amount float64) error {
 	r.logger.WithField("update_deposit", accountID).Debug("Prossesing deposit...")
-	ctx := context.Background()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	ct, err := r.db.Exec(ctx, queryDeposit, amount, accountID)
 	if err != nil {
@@ -66,7 +69,8 @@ func (r *TransactionRepository) Deposit(accountID int64, amount float64) error {
 func (r *TransactionRepository) Withdraw(accountID int64, amount float64) error {
 	r.logger.WithField("update_withdraw", accountID).Debug("Prossesing withdraw...")
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	ct, err := r.db.Exec(ctx, queryWithdraw, amount, accountID)
 	if err != nil {
@@ -85,7 +89,9 @@ func (r *TransactionRepository) Withdraw(accountID int64, amount float64) error 
 func (r *TransactionRepository) Transfer(fromAccountID, toAccountID int64, amount float64) error {
 	r.logger.WithField("transfering", fromAccountID).Debug("Prossesing transfer...")
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		r.logger.WithError(err).Error("Failed begin tx failed")
@@ -125,7 +131,8 @@ func (r *TransactionRepository) Transfer(fromAccountID, toAccountID int64, amoun
 func (r *TransactionRepository) SaveTransaction(txn *entity.Transaction) error {
 	r.logger.WithField("Saving transaction...", txn).Debug("Prossesing save transaction...")
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	err := r.db.QueryRow(ctx, querySave,
 		txn.AccountID,
@@ -145,7 +152,8 @@ func (r *TransactionRepository) SaveTransaction(txn *entity.Transaction) error {
 func (r *TransactionRepository) ListTransactions(accountID int64) ([]entity.Transaction, error) {
 	r.logger.WithField("Listing transactions...", accountID).Debug("Prossesing list transactions...")
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	rows, err := r.db.Query(ctx, queryList, accountID)
 	if err != nil {

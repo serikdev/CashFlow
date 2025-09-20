@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,27 +14,44 @@ import (
 type TransactionRepo interface {
 	ListTransactions(accountID int64) ([]entity.Transaction, error)
 }
+type AccountRepository interface {
+	GetByID(ctx context.Context, accountID int64) (*entity.Account, error)
+}
 
 type Producer interface {
 	Publish(topic, key string, value []byte) error
 }
 
-type TransactionService struct {
-	repo     TransactionRepo
-	producer Producer
-	logger   *logrus.Entry
+type TransactionServiceDeps struct {
+	TransactionRepo TransactionRepo
+	AccountRepo     AccountRepo
+	Producer        Producer
+	Logger          *logrus.Entry
 }
 
-func NewTransactionService(repo TransactionRepo, producer Producer, logger *logrus.Entry) *TransactionService {
+type TransactionService struct {
+	transacRepo TransactionRepo
+	accountRepo AccountRepo
+	producer    Producer
+	logger      *logrus.Entry
+}
+
+func NewTransactionService(deps TransactionServiceDeps) *TransactionService {
 	return &TransactionService{
-		producer: producer,
-		logger:   logger,
+		transacRepo: deps.TransactionRepo,
+		accountRepo: deps.AccountRepo,
+		producer:    deps.Producer,
+		logger:      deps.Logger,
 	}
 }
 
-func (s *TransactionService) Deposit(accountID int64, amount float64) (*entity.Transaction, error) {
+func (s *TransactionService) Deposit(ctx context.Context, accountID int64, amount float64) (*entity.Transaction, error) {
 	if amount <= 0 {
 		return nil, errors.New("deposit amount must be greater than zero")
+	}
+	_, err := s.checkAccountActive(ctx, accountID)
+	if err != nil {
+		return nil, err
 	}
 
 	event := entity.TransactionEvent{
@@ -59,9 +77,14 @@ func (s *TransactionService) Deposit(accountID int64, amount float64) (*entity.T
 	}, nil
 }
 
-func (s *TransactionService) Withdraw(accountID int64, amount float64) (*entity.Transaction, error) {
+func (s *TransactionService) Withdraw(ctx context.Context, accountID int64, amount float64) (*entity.Transaction, error) {
 	if amount <= 0 {
 		return nil, errors.New("withdraw amount must be greater than zero")
+	}
+
+	_, err := s.checkAccountActive(ctx, accountID)
+	if err != nil {
+		return nil, err
 	}
 
 	event := entity.TransactionEvent{
@@ -88,12 +111,21 @@ func (s *TransactionService) Withdraw(accountID int64, amount float64) (*entity.
 	}, nil
 }
 
-func (s *TransactionService) Transfer(fromAccountID, toAccountID int64, amount float64) (*entity.Transaction, error) {
+func (s *TransactionService) Transfer(ctx context.Context, fromAccountID, toAccountID int64, amount float64) (*entity.Transaction, error) {
 	if amount <= 0 {
 		return nil, errors.New("transfer amount must be greater than zero")
 	}
 	if fromAccountID == toAccountID {
 		return nil, errors.New("cannot transfer to the same account")
+	}
+
+	_, err := s.checkAccountActive(ctx, fromAccountID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.checkAccountActive(ctx, toAccountID)
+	if err != nil {
+		return nil, err
 	}
 
 	event := entity.TransactionEvent{
@@ -122,9 +154,26 @@ func (s *TransactionService) Transfer(fromAccountID, toAccountID int64, amount f
 }
 
 func (s *TransactionService) ListTransactions(accountID int64) ([]entity.Transaction, error) {
-	return s.repo.ListTransactions(accountID)
+	return s.transacRepo.ListTransactions(accountID)
 }
 
-func (s *TransactionService) SetRepo(repo TransactionRepo) {
-	s.repo = repo
+func (s *TransactionService) SetRepo(TransacRepo TransactionRepo) {
+	s.transacRepo = TransacRepo
+}
+
+func (s *TransactionService) checkAccountActive(ctx context.Context, accountID int64) (*entity.Account, error) {
+	account, err := s.accountRepo.GetByID(ctx, accountID)
+	if err != nil {
+		return nil, fmt.Errorf("account not found: %w", err)
+	}
+
+	if account.IsLocked {
+		return nil, errors.New("account is locked")
+	}
+
+	if account.DeletedAt != nil {
+		return nil, errors.New("account is deleted")
+	}
+	return account, nil
+
 }

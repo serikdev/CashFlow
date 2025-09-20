@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/serikdev/CashFlow/internal/entity"
 	"github.com/serikdev/CashFlow/internal/port/rest/handler/dto"
@@ -10,9 +12,9 @@ import (
 )
 
 type TransactionUsecase interface {
-	Deposit(accountID int64, amount float64) (*entity.Transaction, error)
-	Withdraw(accountID int64, amount float64) (*entity.Transaction, error)
-	Transfer(fromAccountID, toAccountID int64, amount float64) (*entity.Transaction, error)
+	Deposit(ctx context.Context, accountID int64, amount float64) (*entity.Transaction, error)
+	Withdraw(ctx context.Context, accountID int64, amount float64) (*entity.Transaction, error)
+	Transfer(ctx context.Context, fromAccountID, toAccountID int64, amount float64) (*entity.Transaction, error)
 	ListTransactions(accountID int64) ([]entity.Transaction, error)
 }
 
@@ -60,7 +62,9 @@ func (h *TransactionHandler) Deposit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := h.service.Deposit(id, payload.Amount)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+	tx, err := h.service.Deposit(ctx, id, payload.Amount)
 	if err != nil {
 		h.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -96,7 +100,10 @@ func (h *TransactionHandler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		h.RespondWithError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	tx, err := h.service.Withdraw(id, payload.Amount)
+
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+	tx, err := h.service.Withdraw(ctx, id, payload.Amount)
 	if err != nil {
 		h.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
@@ -133,7 +140,9 @@ func (h *TransactionHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tx, err := h.service.Transfer(fromID, payload.ToAccountID, payload.Amount)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+	tx, err := h.service.Transfer(ctx, fromID, payload.ToAccountID, payload.Amount)
 	if err != nil {
 		h.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return

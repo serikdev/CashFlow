@@ -16,3 +16,20 @@ CREATE INDEX idx_transactions_active ON transactions(id) WHERE deleted_at IS NUL
 
 -- +goose Down
 DROP TABLE transactions;
+
+
+
+
+/*
+    NOTE: For stronger data integrity in financial systems, 
+    consider replacing VARCHAR + CHECK with ENUM type.
+
+    Example:
+
+    CREATE TYPE transaction_type_enum AS ENUM ('deposit', 'withdrawal', 'transfer');
+
+    CREATE TABLE transactions(
+        id SERIAL PRIMARY KEY,
+        transaction_type transaction_type_enum NOT NULL
+    );
+*/

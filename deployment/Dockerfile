@@ -1,14 +1,14 @@
 
-FROM golang:1.21-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . .
+COPY .. .
 
-RUN go build -o cashflow ./cmd/app
+RUN go build -o cashflow ./cmd/api/main.go
 
 FROM alpine:latest
 

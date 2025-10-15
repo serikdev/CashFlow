@@ -39,7 +39,7 @@ func main() {
 		"log_level": cfg.LoggerConfig.LogLevel,
 	}).Info("Starting server with config")
 
-	db, err := database.NewPool(ctx, cfg.DBConfig, *log)
+	db, err := database.NewPool(ctx, cfg.DBConfig, log)
 	if err != nil {
 		log.WithError(err).Fatal("Failed to connect database")
 	}

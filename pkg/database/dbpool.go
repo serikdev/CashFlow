@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewPool(ctx context.Context, cfg config.DBConfig, logger logrus.Entry) (*pgxpool.Pool, error) {
+func NewPool(ctx context.Context, cfg config.DBConfig, logger *logrus.Entry) (*pgxpool.Pool, error) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name,

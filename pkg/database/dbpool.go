@@ -11,8 +11,8 @@ import (
 
 func NewPool(ctx context.Context, cfg config.DBConfig, logger *logrus.Entry) (*pgxpool.Pool, error) {
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s",
-		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name,
+		"postgres://%s:%s@%s:%s/%?sslmode=%s",
+		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.SllMode,
 	)
 
 	logger.WithFields(logrus.Fields{

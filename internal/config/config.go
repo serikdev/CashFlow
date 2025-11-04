@@ -32,7 +32,7 @@ type KafkaConfig struct {
 
 func LoadConfig() *Config {
 	err := godotenv.Load()
-	if err != nil {
+	if err != nil && !os.IsNotExist(err) {
 		logrus.WithError(err).Error("Failed to parse env file")
 	}
 	return &Config{

@@ -9,12 +9,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewPool(ctx context.Context, cfg config.DBConfig, logger *logrus.Entry) (*pgxpool.Pool, error) {
-	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%?sslmode=%s",
-		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.SllMode,
-	)
+func NewPool(ctx context.Context, cfg config.DBConfig, appConfig *config.Config, logger *logrus.Entry) (*pgxpool.Pool, error) {
+	var dsn string
+	if appConfig.DatabaseURL != "" {
+		dsn = appConfig.DatabaseURL
+	} else {
 
+		dsn = fmt.Sprintf(
+			"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+			cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.SllMode,
+		)
+	}
 	logger.WithFields(logrus.Fields{
 		"host":    cfg.Host,
 		"port":    cfg.Port,

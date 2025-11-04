@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	DatabaseURL  string
 	DBConfig     DBConfig
 	LoggerConfig LoggerConfig
 	KafkaConfig  KafkaConfig
@@ -35,7 +36,9 @@ func LoadConfig() *Config {
 	if err != nil && !os.IsNotExist(err) {
 		logrus.WithError(err).Error("Failed to parse env file")
 	}
+	dbURL := getEnv("DATABASE_URL", "")
 	return &Config{
+		DatabaseURL: dbURL,
 		DBConfig: DBConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_port", "5432"),

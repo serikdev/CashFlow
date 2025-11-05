@@ -31,6 +31,7 @@ with **event-driven processing** via Kafka consumers and producers.
 
 ```text
 cmd/            – Application entrypoint
+deployment/     - Deployment
 internal/
   adapter/      – DB Repositories (Postgres with pgxpool)
   entity/       – Domain models
